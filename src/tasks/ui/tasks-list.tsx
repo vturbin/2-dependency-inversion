@@ -1,10 +1,17 @@
 import { TaskItem } from "./task-item";
 import { useTasks } from "../model/use-tasks";
 import { CreateTaskForm } from "./create-task-from";
+import { OwnerSelectParams, TasksRepository } from "../types";
+import { ReactNode } from "react";
+import { ToggleTaskCheckbox } from "./toggle-task-checkbox";
+import { DeleteTaskButton } from "./delete-task-button";
 
-export function TasksList() {
+export function TasksList({renderOwnerSelect, tasksRepository}: {
+  renderOwnerSelect: (params: OwnerSelectParams) => ReactNode;
+  tasksRepository: TasksRepository;
+}) {
   const { addTask, removeTask, tasks, toggleCheckTask, updateOwner } =
-    useTasks();
+    useTasks({tasksRepository});
 
   return (
     <div>
@@ -12,12 +19,20 @@ export function TasksList() {
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
-          done={task.done}
           title={task.title}
-          ownerId={task.ownerId}
-          onToggleDone={() => toggleCheckTask(task.id)}
-          onDelete={() => removeTask(task.id)}
-          onChangeOwner={(ownerId) => updateOwner(task.id, ownerId)}
+          actions={
+            <>
+              <ToggleTaskCheckbox
+                value={task.done}
+                onToggle={toggleCheckTask.bind(null, task.id)}
+              />
+              <DeleteTaskButton onClick={removeTask.bind(null, task.id)} />
+              {renderOwnerSelect({
+                ownerId: task.ownerId,
+                onChangeOwnerId: updateOwner.bind(null, task.id),
+              })}
+            </>
+          }
         />
       ))}
     </div>
